@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.0 — 2026-07-23
+
+Merge the omo-senpi engine improvements (verified before/after: 9/14 → 12/14 on a 14-site live bench). Rebased on top of 0.11.0; additive to the content-quality / retry / rescue work already on `main`.
+
+- **Validator false-positive fixes**: challenge markers now use identifier-boundary matching (a feature-flag token ending in `captcha` is no longer a challenge); CF interstitial structural markers (`window._cf_chl_opt`, `orchestrate/chl_page`) are decisive at any body size; a single SOFT marker inside a large body (>20KB) is treated as a content mention, not a block.
+- **curl_cffi runtime target filter**: TLS impersonate candidates are intersected with the installed curl_cffi's supported set, so version skew never wastes attempts; profile `tls_impersonate_avoid` keeps empirical blacklists only.
+- **Protocol-stealth fallback**: new `protocol_stealth_chrome` executor drives nodriver (raw CDP, no Playwright shim) then patchright (channel=chrome) for gates that fingerprint the automation protocol; import-guarded, opt-in auto-install.
+- **New WAF profiles**: `kasada_ips`, `imperva_incapsula`; `needs_protocol_stealth` added to Akamai/Cloudflare/DataDome/PerimeterX.
+- **Scraper forge**: `scripts/endpoint_miner.py` (static API mining) + `engine/templates/network_capture_patchright.py` (dynamic XHR capture) + `engine/recipe_loader.py` + `recipes/<domain>/recipe.yaml`. Recipes are consulted before the grid (Phase 0.5); a page-URL rewrite maps a blocked HTML page to its open JSON API.
+- **Observations log**: every fetch outcome appended to `observations/*.jsonl` for profile tuning (route learning remains in `learning.py`).
+- **auto-forge (opt-in, `INSANE_AUTO_FORGE=1`)**: when the chain gives up, render once, capture XHR/fetch traffic, pick the endpoint whose JSON most overlaps the rendered page text (ad/telemetry endpoints denied), confirm it replays with plain curl, return that JSON and auto-write a recipe. Multi-domain test: correctly finds the content API on JS-app sites (Naver/Musinsa/11st/dev.to/Clien) and returns no-content on server-rendered pages (HN/Reddit/SO) instead of grabbing an ad blob.
+
 ## 0.11.0 — 2026-07-23
 
 Content-quality + diagnosis upgrades (research P0 batch). All new libraries are
