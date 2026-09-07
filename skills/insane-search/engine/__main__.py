@@ -56,6 +56,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Skip the Phase 0 official-API router (generic grid only).")
     p.add_argument("--json", action="store_true",
                    help="Emit FetchResult as JSON to stdout (content omitted).")
+    p.add_argument("--json-content", action="store_true",
+                   help="Emit metadata, trace and wrapped untrusted text from one fetch; URL fields are masked.")
     p.add_argument("--trace", action="store_true",
                    help="Print per-attempt trace to stderr.")
     return p
@@ -102,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             "\n════════════════════════════════════════════════════════════════\n"
             "⚠️  R7 triggered — consider API-first route instead of HTML grid.\n"
-            "   See summary below (or re-run with --trace for full attempt log).\n"
+            "   See summary below; use --trace on the initial fetch for the full attempt log.\n"
             "════════════════════════════════════════════════════════════════",
             file=sys.stderr,
         )
@@ -126,8 +128,14 @@ def main(argv: list[str] | None = None) -> int:
             print("   ➜ must_invoke_playwright_mcp = TRUE — drive MCP Playwright from the agent session.", file=sys.stderr)
         print("════════════════════════════════════════════════════════════════", file=sys.stderr)
 
-    if args.json:
+    if args.json or args.json_content:
         payload = result.to_dict()
+        if args.json_content:
+            payload["final_url"] = mask_url(result.final_url)
+            for attempt in payload["trace"]:
+                attempt["url"] = mask_url(attempt["url"])
+                attempt["referer"] = mask_url(attempt["referer"])
+            payload["untrusted_text"] = result.to_untrusted_text()
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
         print(result.to_untrusted_text(), end="")
