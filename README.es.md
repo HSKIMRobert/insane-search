@@ -23,6 +23,11 @@ Un lector de páginas públicas resistente al bloqueo, para Claude Code. Sin cla
 
 ---
 
+## Novedades de v0.16.3
+
+- **Contenido y trace en una sola consulta:** `--json-content` devuelve juntos los metadatos, el trace y el texto delimitado como contenido no confiable, sin volver a consultar la misma URL para obtener el diagnóstico. La salida de `--json` sigue sin incluir el cuerpo.
+- **Carga diferida de analizadores PDF:** `pdfplumber` y `pypdf` solo se cargan cuando hace falta extraer un PDF, no al iniciar el motor para HTML. Se mantienen la extracción de PDF y el comportamiento de respaldo.
+
 ## ⚡ Instalación
 
 ```bash

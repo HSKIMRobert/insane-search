@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.16.3 — 2026-09-08
+
+- **단일 수집(content/trace 1회 반환)·PDF 파서 지연 로딩.** `--json-content`로 한 번의 수집 결과에서 메타데이터·trace와 비신뢰 콘텐츠 경계로 감싼 본문(`untrusted_text`)을 함께 반환한다. 본문과 진단을 얻기 위해 같은 URL을 다시 수집할 필요가 없다. 기존 `--json`은 본문을 제외하는 계약을 유지하며, 결합 결과의 URL 자격정보는 마스킹한다.
+- `pdfplumber`·`pypdf`는 PDF 추출이 필요할 때만 불러온다. 일반 HTML 엔진 시작과 크기 제한을 넘은 PDF 거부 경로에서는 로드하지 않는다. `pdfplumber` 우선·`pypdf` 폴백과 파서 미설치 시 결과는 유지한다.
+- 검증: 단일 수집·기존 JSON 호환·URL 마스킹 3건, 새 프로세스의 PDF 지연 로딩 3건, PDF 추출·폴백 6건 통과. 공개 페이지 CLI에서 HTTP 200, trace 1건과 본문 동시 반환을 확인했다.
+
 ## 0.16.2 — 2026-09-05
 
 - **포털형 호스트(`blog.naver.com`, `cafe.daum.net` …)를 못 열던 문제 수정 — 새 URL 변환 `m_prefix_subdomain`.** 이런 호스트는 데스크톱 요청에 2~3KB 프레임셋 껍데기를 200으로 돌려주고, 판정층은 이를 `tiny_body` → challenge로 읽는다. 기존 모바일 변환은 `www.*`(`mobile_subdomain`)와 apex(`am_prefix`)만 다뤄서 서브도메인이 붙은 호스트는 `m.` 쌍둥이를 **한 번도 시도하지 않았다** — 실측 18회 시도 전패(25초). 이제 `sub.example.com → m.sub.example.com`을 격자에 넣는다. 규칙은 사이트명 없이 범용이며, 무관한 두 포털에서 교차검증(2.9KB→28KB, 1.6KB→24KB).

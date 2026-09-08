@@ -23,6 +23,11 @@ A resilient public-page reader for Claude Code. No API keys, no proxy setup.
 
 ---
 
+## New in v0.16.3
+
+- **One fetch for content and trace:** `--json-content` returns metadata, trace, and wrapped untrusted text together, without fetching the same URL again for diagnostics. Existing `--json` output still omits the body.
+- **Lazy PDF parsers:** `pdfplumber` and `pypdf` load only when PDF extraction is needed, not during ordinary HTML startup. PDF extraction and fallback behavior are preserved.
+
 ## ⚡ Install
 
 ```bash
