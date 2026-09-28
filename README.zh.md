@@ -46,7 +46,7 @@
 > *"在 X 上搜索关于 insane-search 的帖子。"*
 > *"总结这个 YouTube 视频。"*
 
-**预期效果：** Claude 通过各站点的公开路径——Reddit 的订阅源、X 的 oEmbed、YouTube 的字幕——在无需登录、无需 API 密钥的情况下取回可用文本；而没有该插件时，同样的请求只会得到 *"我无法访问"*。
+**预期效果：** Claude 通过各站点的公开路径——Reddit 的订阅源、X 的免费 Brave/Yahoo 检索加 tweet-result 校验、YouTube 的字幕——在无需登录、无需 API 密钥的情况下取回可用文本；而没有该插件时，同样的请求只会得到 *"我无法访问"*。如果已有 xAI 凭据，X 关键词检索会自动并入原生 `x_search`；免费路径始终保留，可用 `INSANE_SEARCH_XAI=off` 强制只走免费路径。
 
 ## 🌐 支持的平台
 

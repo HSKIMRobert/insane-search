@@ -46,7 +46,7 @@ Solo pídelo con normalidad: insane-search se activa cuando algo se bloquea:
 > *"Busca en X publicaciones sobre insane-search."*
 > *"Resume este vídeo de YouTube."*
 
-**Resultado esperado:** Claude llega a la ruta pública de cada sitio —el feed de Reddit, X vía oEmbed, los subtítulos de YouTube— sin inicio de sesión ni clave de API, y devuelve texto utilizable, allí donde la misma petición respondería *"no puedo acceder a eso"* sin el plugin.
+**Resultado esperado:** Claude llega a la ruta pública de cada sitio —el feed de Reddit, X mediante búsqueda gratuita en Brave/Yahoo más validación con tweet-result, los subtítulos de YouTube— sin inicio de sesión ni clave de API, y devuelve texto utilizable, allí donde la misma petición respondería *"no puedo acceder a eso"* sin el plugin. Si ya hay credenciales de xAI disponibles, la búsqueda de X por palabras clave se complementa automáticamente con `x_search` nativo; la ruta gratuita sigue activa y puede forzarse con `INSANE_SEARCH_XAI=off`.
 
 ## 🌐 Funciona en
 

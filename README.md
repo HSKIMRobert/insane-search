@@ -56,6 +56,7 @@ Just ask normally — insane-search kicks in when a fetch gets blocked:
 
 - **It escalates, never pre-judges** — public API readers → syndication gateways → TLS impersonation → a real headless browser, trying each route until one works.
 - **It looks human** — builds a full browser identity (real TLS fingerprint, cookie warming, referer chain), not just a swapped User-Agent.
+- **It finds hidden APIs** — watches a real browser's network traffic and reuses the site's own internal JSON.
 - **Zero setup** — auto-installs what it needs (`curl_cffi`, `yt-dlp`, …) on first use. No API keys, no signup.
 
 ## 🆚 Default Claude Code vs `+ insane-search`
