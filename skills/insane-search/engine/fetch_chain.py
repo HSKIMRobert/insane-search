@@ -934,12 +934,15 @@ def _fetch_core(
                     reasons=[a["note"]] if a.get("note") else [],
                 ))
             if p0["ok"]:
+                trunc = {k: p0[k] for k in ("truncated_possible", "truncation_reason") if k in p0}
                 return FetchResult(
                     ok=True, content=p0["content"], final_url=p0["final_url"],
                     verdict=Verdict.STRONG_OK.value,
                     profile_used=f"phase0:{p0['platform']}", trace=trace,
-                    summary=f"Phase 0 official route: {p0['platform']}:{p0['route']}",
+                    summary=f"Phase 0 official route: {p0['platform']}:{p0['route']}"
+                            + (f" (truncated_possible: {trunc.get('truncation_reason')})" if trunc else ""),
                     stop_reason="success",
+                    extraction_meta=trunc,
                 )
             # Recognised platform but every official route failed → fall through
             # to the generic grid (don't give up; R6).

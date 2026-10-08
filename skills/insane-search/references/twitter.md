@@ -123,6 +123,23 @@ print(d['user']['name'], '@'+d['user']['screen_name']); print(d['text']); print(
 
 > `token` 파라미터는 임의 값(`a`)이어도 동작한다. `id`는 `/status/{id}` 경로에서 추출.
 
+## 장문 트윗·X 아티클 — FxTwitter 조건부 폴백 (v0.17.0, 엔진 자동)
+
+tweet-result와 oEmbed는 **장문 트윗을 약 280자에서 자르고, X 아티클은 t.co 링크만** 준다(잘렸다는 표시 없음). 엔진(`engine/phase0.py`)은 tweet-result JSON에 아래 신호가 하나라도 있으면 `api.fxtwitter.com`을 추가로 불러 전문을 받는다.
+
+| 신호 | 의미 |
+|---|---|
+| `note_tweet` 키 | 장문 트윗 |
+| `article` 키 | X 아티클 (본문은 FxTwitter `tweet.article.content.blocks[].text`) |
+| 본문 270자 이상 | 장문 가능성 |
+| 본문이 t.co 링크 하나뿐 | 아티클·미디어 가능성 |
+
+- 성공하면 `route: fxtwitter`, `content`는 전문 텍스트(아티클은 제목 + 블록 본문).
+- 실패하거나 tweet-result보다 길지 않으면 tweet-result 결과를 그대로 돌려주고 `truncated_possible: true`, `truncation_reason: fxtwitter_failed`를 붙인다(`FetchResult.extraction_meta`와 summary에 노출).
+- 짧은 트윗은 FxTwitter를 부르지 않는다. 2026-10-08 실측 18건: 장문·아티클 6/6 전문, 짧은 트윗 12/12 미호출, 호출 54회 실패 0.
+
+> ⚠️ **제3자 전송 고지**: 신호가 있으면 조회한 트윗 ID·작성자 핸들이 제3자 서비스(fxtwitter.com, 개인 운영·SLA 없음)로 전송된다. 끄려면 `INSANE_SEARCH_FXTWITTER=0` — 이때 신호가 있는 트윗은 `truncation_reason: fxtwitter_disabled`로 표시된다.
+
 ## 조합 패턴 (검색 → 상세)
 
 ```

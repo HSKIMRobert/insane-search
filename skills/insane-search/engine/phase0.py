@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -113,6 +114,44 @@ def _reddit(url: str, timeout: int) -> dict:
 
 # --- x / twitter -------------------------------------------------------------
 _TWEET_ID_RE = re.compile(r"/status(?:es)?/(\d+)")
+_TCO_ONLY_RE = re.compile(r"^\s*https://t\.co/\S+\s*$")
+_LONG_TEXT_CHARS = 270
+
+
+def _x_truncation_signal(d: dict) -> bool:
+    """tweet-result JSON shows the text may be cut: long-form note_tweet, an X
+    Article, near-280 text, or only a t.co link (2026-10-08: these 4 signals
+    covered 6/6 long/article tweets and 0/12 plain short tweets)."""
+    text = d.get("text") or ""
+    return ("note_tweet" in d or "article" in d or len(text) >= _LONG_TEXT_CHARS
+            or bool(_TCO_ONLY_RE.match(text)))
+
+
+def _fxtwitter_full_text(fx: dict) -> str:
+    t = (fx or {}).get("tweet") or {}
+    art = t.get("article") or {}
+    blocks = ((art.get("content") or {}).get("blocks")) or []
+    body = "\n\n".join(b.get("text", "") for b in blocks if b.get("text"))
+    if body:
+        return "\n\n".join(x for x in (art.get("title") or "", body) if x)
+    return t.get("text") or ""
+
+
+def _x_fxtwitter(tid: str, d: dict, timeout: int, attempts: list[dict]) -> Optional[str]:
+    """Third-party fallback (api.fxtwitter.com — the tweet URL leaves to that
+    service; disable with INSANE_SEARCH_FXTWITTER=0). Returns full text only if
+    it is longer than what tweet-result already gave; None otherwise."""
+    user = ((d.get("user") or {}).get("screen_name")) or "i"
+    try:
+        x = _cffi_get(f"https://api.fxtwitter.com/{user}/status/{tid}", impersonate="chrome", timeout=timeout)
+        full = _fxtwitter_full_text(x.json()) if x.status_code == 200 else ""
+        ok = len(full) > len(d.get("text") or "")
+        attempts.append(_attempt("x", "fxtwitter", ok, x.status_code, x.text,
+                                 f"chars={len(full)}" if ok else f"status={x.status_code} not-longer"))
+        return full if ok else None
+    except Exception as e:
+        attempts.append(_attempt("x", "fxtwitter", False, 0, "", f"{type(e).__name__}"))
+        return None
 
 
 def _x(url: str, timeout: int) -> dict:
@@ -128,8 +167,18 @@ def _x(url: str, timeout: int) -> dict:
             attempts.append(_attempt("x", "tweet-result", ok, x.status_code, x.text,
                                      "has-text" if ok else f"status={x.status_code}"))
             if ok:
-                return {"platform": "x", "ok": True, "route": "tweet-result",
-                        "content": x.text, "final_url": url, "attempts": attempts}
+                res = {"platform": "x", "ok": True, "route": "tweet-result",
+                       "content": x.text, "final_url": url, "attempts": attempts}
+                if _x_truncation_signal(d):
+                    if os.environ.get("INSANE_SEARCH_FXTWITTER", "1") == "0":
+                        res.update(truncated_possible=True, truncation_reason="fxtwitter_disabled")
+                    else:
+                        full = _x_fxtwitter(tid, d, timeout, attempts)
+                        if full:
+                            res.update(route="fxtwitter", content=full)
+                        else:
+                            res.update(truncated_possible=True, truncation_reason="fxtwitter_failed")
+                return res
         except Exception as e:
             attempts.append(_attempt("x", "tweet-result", False, 0, "", f"{type(e).__name__}"))
         try:

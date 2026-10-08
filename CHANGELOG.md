@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.17.0 — 2026-10-08
+
+- **X 장문 트윗·X 아티클을 잘리지 않은 전문으로 수집 — FxTwitter 조건부 폴백.** tweet-result·oEmbed는 장문을 약 280자에서 자르고 아티클은 t.co 링크만 주면서 잘림 표시도 없었다. 이제 tweet-result JSON에 `note_tweet`·`article` 키, 270자 이상, t.co 링크만 있는 본문 중 하나라도 보이면 `api.fxtwitter.com`을 추가로 불러 전문을 받는다(`route: fxtwitter`, 아티클은 제목+블록 본문). 짧은 트윗은 호출하지 않는다.
+- 실패하거나 더 길지 않으면 기존 결과를 돌려주되 `truncated_possible`·`truncation_reason`을 `FetchResult.extraction_meta`와 summary에 남긴다 — 잘림이 더는 조용하지 않다.
+- 제3자 전송: 신호가 있는 트윗의 ID·핸들이 fxtwitter.com으로 나간다. `INSANE_SEARCH_FXTWITTER=0`으로 끈다(`truncation_reason: fxtwitter_disabled`). `references/twitter.md`에 고지.
+- 검증: `engine/tests/test_x_fxtwitter.py` 오프라인 9건(신호 4종·실패 폴백·스위치·FetchResult 전달), 네트워크 재측정 18건에서 장문·아티클 6/6 전문(karpathy 아티클 10,290자), 짧은 트윗 12/12 미호출.
+
 ## 0.16.3 — 2026-09-08
 
 - **단일 수집(content/trace 1회 반환)·PDF 파서 지연 로딩.** `--json-content`로 한 번의 수집 결과에서 메타데이터·trace와 비신뢰 콘텐츠 경계로 감싼 본문(`untrusted_text`)을 함께 반환한다. 본문과 진단을 얻기 위해 같은 URL을 다시 수집할 필요가 없다. 기존 `--json`은 본문을 제외하는 계약을 유지하며, 결합 결과의 URL 자격정보는 마스킹한다.
